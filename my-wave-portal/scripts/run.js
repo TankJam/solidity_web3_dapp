@@ -41,6 +41,13 @@ const main = async () => {
 
     waveCount = await waveContract.getTotalWaves();
 
+    // 模拟其他用户点击我们的功能
+    // randomPerson 随机抓去的一个地址
+    waveTxn = await waveContract.connect(randomPerson).wave()
+    // 查看当前操作次数
+    waveCount = await waveContract.getTotalWaves();
+
+
   };
   const runMain = async () => {
     try {
