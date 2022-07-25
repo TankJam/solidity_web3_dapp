@@ -89,3 +89,92 @@
 
 
     
+## 三、构建连接到我们的钱包并与我们的 WaveContract 对话的 web3 应用程序
+### 1、构建一个基本的React应用程序，并且设置连接到metamask钱包
+  - 1.前置准备
+    - https://replit.com/ 通过github登录该网站
+    - 点击 run 按钮启动react程序
+    - 测试 编辑 app.jsx 查看是否更新
+
+  - 2.连接metamask
+    - 为什么我们需要 Metamask？因为我们需要能够调用位于区块链上的智能合约上的函数。而且，要做到这一点，我们需要一个包含我们以太坊地址和私钥的钱包。
+    - 点击页面中的 Wave at Me 按钮连接钱包
+
+### 2、将智能合约部署到真实的测试网
+  - 1.先关闭本地节点的区块链
+  - 2.在 Alchemy（最简单部署到以太坊的工具） 注册一个账号，然后在里面创建一个app
+    - 1）进入：https://www.alchemy.com/
+    - 2）选择 Ethemurme 
+    - 3）Create your first app
+      - 必填： TEAM NAME 
+      - 必填： APP NAME 
+      - 选择： NETWORK ---> Binkeby
+    - 4）进入面板页面
+      - 点击刚才 APP NAME 的 VIEW DETAILS 
+      - 点击 VIEW KEY 
+        - 复制API的URL，后续需要使用
+          - https://eth-rinkeby.alchemyapi.io/v2/a0ZA6TtUZ5z9qCWJ6ohNAdiTwA6iEdOi
+
+  - 3.将合约部署到区块链，是将gas费用交给专门管理以太坊的矿工，矿工在全球每个角落中
+    - 让矿工将我的智能合约添加到区块链中，让他公布给所有人去访问
+    - Alchemy 本质上帮助我们广播我们的合约创建交易，以便矿工尽快获取它。一旦交易被挖掘出来，
+    - 它就会作为合法交易被广播到区块链。从那里，每个人都会更新他们的区块链副本。
+
+  - 4.测试网
+    - 1）广播我们的交易
+    - 2）等待实际矿工领取
+    - 3）等待它被开采
+    - 4）等待它被广播回区块链，告诉所有其他矿工更新他们的副本;
+
+  - 5.获取一些假的ETH
+    - 1）通过水龙头为Rinkeby获取一些假的ETH
+      - https://faucets.chain.link/
+      - 5个小时才能获取一次测试网以太币
+
+  - 6.部署到 Rinkeby 测试网络
+    - 1）更改 hardhat.config.js 文件
+      require("@nomicfoundation/hardhat-toolbox");
+      /** @type import('hardhat/config').HardhatUserConfig */
+      module.exports = {
+        solidity: "0.8.9",
+        networks: {
+          rinkebr:{
+            url:"Alchemy中的的以太坊API",
+            accounts: ["钱包私钥"]  // 注意，秘钥不能上传到github，否则钱包很危险
+          }
+        }
+      };
+
+      - 需要登录区块
+      - 公共地址：相当于用户名
+      - 私钥：相当于密码
+
+    - 2) 执行命令
+      - npx hardhat run scripts/deploy.js --network rinkeby
+
+    - 3) 查看部署结果
+      - Deploying contracts with account:  0x53D92bA4E1C4E42C3c2D68F2A383c55CadDD812b   ->   部署合约的钱包地址
+      - Account balance:  100000000000000000                                            ->   账户余额，单位为 wei
+      - WavePortal address:  0x5551197f04eBf94940c5882fc21b049fADc988dB                 ->   合约地址
+
+    - 4）去以太坊查看部署好的合约地址
+      - https://rinkeby.etherscan.io/address/0x5551197f04eBf94940c5882fc21b049fADc988dB
+
+
+### 3、将钱包连接到web应用程序（使用window.ethereum()）
+  - 1.在右边src下的app.jsx中测试
+    - 点击运行按钮  
+      - 看到以下代码
+        /*
+        * 首先确保我们可以访问 window.ethereum
+        */
+        const { ethereum } = window;
+
+        if (!ethereum) {
+          console.log("Make sure you have metamask!");
+        } else {
+          console.log("We have the ethereum object", ethereum);
+        }
+
+### 4、检查是否可以访问用户账户
+  - 检查我们是否被授权实际访问用户的钱包。一旦我们可以访问它，我们就可以调用我们的智能合约
