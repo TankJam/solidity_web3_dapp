@@ -93,6 +93,7 @@
 ### 1、构建一个基本的React应用程序，并且设置连接到metamask钱包
   - 1.前置准备
     - https://replit.com/ 通过github登录该网站
+      - 用于在线编辑与测试react程序
     - 点击 run 按钮启动react程序
     - 测试 编辑 app.jsx 查看是否更新
 
@@ -178,3 +179,93 @@
 
 ### 4、检查是否可以访问用户账户
   - 检查我们是否被授权实际访问用户的钱包。一旦我们可以访问它，我们就可以调用我们的智能合约
+
+
+### 5、创建connectWallet按钮用于应用连接钱包
+  - connectWallet方法
+    /**
+    * 在这里实现 connectWallet 方法
+    */
+    const connectWallet = async () => {
+      try {
+        const { ethereum } = window;
+        if (!ethereum) {
+          alert("Get MetaMask!");
+          return;
+        }
+        const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+        console.log("Connected", accounts[0]);
+        setCurrentAccount(accounts[0]);
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+### 6、调用已经部署好的合约
+  - 1.前置条件
+    - 1）我们已经部署了我们的网站。
+    - 2）我们已经部署了我们的合约。
+    - 3）我们已经连接了我们的钱包
+
+  - 2.通过Metamask访问凭据从网站实际调用我们部署好的合约;
+
+  - 3.合约代码
+    - 1）检索合约挥手次数功能
+      funtion getTotalWaves() public view returns(uint256){
+        console.log("We have %d total waves!", totalWaves);
+        return totalWaves;
+      }
+
+    - 2）调用连接合约功能
+      <!-- 导入与以太坊合约对话的库 -->
+      import { ethers } from "ethers";
+      const wave = async () => {
+        try {
+          const { ethereum } = window;
+          if (ethereum) {
+            <!-- provider是用来与以太坊节点实际交互的对象 -->
+            <!-- Metamask 在后台提供的节点来发送/接收来自我们部署的合约的数据 -->
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            <!-- 以太坊中的签名者是以太坊账户的抽象，可用于对消息和交易进行签名，并将签名的交易发送到以太坊网络以执行状态更改操作。 -->
+            <!-- signer 相当于以太坊授权交易等操作的秘钥对象 -->
+            const signer = provider.getSigner();
+            const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+            let count = await wavePortalContract.getTotalWaves();
+            console.log("Retrieved total wave count...", count.toNumber());
+          } else {
+            console.log("Ethereum object doesn't exist!");
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      <!-- 目前钱包连接成功，contractAddress is not defined ，也就是 contractAddress 未定义。除此以外，contractABI 也未定义。 -->
+
+    - 3）ABI
+      - 什么是 ABI？之前我提到过当你编译一个合约时，它会在工件下为你创建一堆文件。 ABI 就是这些文件之一。
+
+    - 4) “Wave”按钮后，您将通过 Web 客户端正式从区块链上的合约中读取数据。
+      <!-- 但是不知道为啥更改不了页面的内容!!! -->
+      <button className="waveButton" onClick={wave}>
+          Wave at Me
+      </button>
+
+    - 5) 向区块链合约写数据
+      - 读取与写入数据的代码并没有太大的不同，主要区别是读取数据时免费的，因为没有对区块进行更改，但是写入数据需要通知矿工，以便交易能够被挖掘，所以需要花费gas
+      - wave方法中
+        /*
+        * 执行合约里面的 wave 方法。
+        */
+        const waveTxn = await wavePortalContract.wave();
+        console.log("Mining...", waveTxn.hash);
+        await waveTxn.wait();
+        console.log("Mined -- ", waveTxn.hash);
+        count = await wavePortalContract.getTotalWaves();
+        console.log("Retrieved total wave count...", count.toNumber());
+
+    - 6）掌握了智能合约客户端的开发，读写数据
+
+
+## 四、更新 WavePortal 以随机向发送幸运用户发送一些以太坊
+### 1、更新来自用户的消息存储的区块链合约
+  - ./solidity_web3_dapp/my-wave-portal/contracts/WavePortal.sol
