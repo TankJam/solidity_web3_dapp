@@ -9,11 +9,14 @@ const main = async () => {
     const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
     // 部署合约
     const waveContract = await waveContractFactory.deploy(); 
+    console.log("WavePortal address1: ", waveContract.address);
+    console.log("deploy...");
     // 部署完成
     await waveContract.deployed();
 
-    // 查看当前合约地址
-    console.log("WavePortal address: ", waveContract.address);
+    console.log("deployed...");
+    // 查看当前合约地址 
+    console.log("WavePortal address2: ", waveContract.address);
 
   };
   const runMain = async () => {
